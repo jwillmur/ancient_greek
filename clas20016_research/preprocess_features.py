@@ -7,6 +7,8 @@ import os
 import nltk
 import pandas as pd
 
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
 ## find directory
 dir_name = os.path.dirname(__file__)
 relative_dir = 'data/'
@@ -30,8 +32,8 @@ instances['clause'] = instances['clause'].astype(str)
 instances['scansion'] = instances['scansion'].astype(str)
 
 ## dicts for new features
+appearances = []
 num_lines = []
-punc = []
 positions = []
 differences = []
 ratio = []
@@ -41,19 +43,20 @@ trigrams = []
 ## featurise
 for index, row in instances.iterrows():
 
-    punc.append(row['clause'][-1])
+    line_appearence = row['line']/lines_per_book[row['book']-1]
+    appearances.append(line_appearence)
 
     ## find difference in epithet position
     phrase = row['clause'][:-1]
     words = phrase.replace(' | ', ' ').split(' ')
-    if row['epithet_gr'] == 'nan':
+    if row['epithet_gr'] == 'none':
         difference = 0
     else:
         difference = words.index(row['epithet_gr']) - words.index(row['ship'])
     differences.append(difference)
 
     ## bi- and tri-grams
-    if row['epithet_gr'] != 'nan':
+    if row['epithet_gr'] != 'none':
         clause = phrase.replace(' | ', ' ').replace(row['epithet_gr'], '')
     else:
         clause = phrase.replace(' | ', ' ')
@@ -75,11 +78,11 @@ for index, row in instances.iterrows():
 
             ## find position of ship in the line
             if filtered[0] == row['ship']:
-                pos = 'start'
+                pos = 0
             elif filtered[-1] == row['ship']:
-                pos = 'end'
+                pos = 2
             else: 
-                pos = 'mid'
+                pos = 1
             positions.append(pos)
     
     ## find ratio of dactyls in a line
@@ -90,9 +93,33 @@ for index, row in instances.iterrows():
             dactyl += 1
     ratio.append(dactyl/6) # six feet per line
 
+## encode all categorical variables
+label = LabelEncoder()
+onehot_encoder = OneHotEncoder(sparse=False)
+
+ship_map = label.fit_transform(instances['ship'])
+ship_map = ship_map.reshape(len(ship_map), 1)
+ships = onehot_encoder.fit_transform(ship_map)
+
+number_map = label.fit_transform(instances['number'])
+number_map = number_map.reshape(len(number_map), 1)
+numbers = onehot_encoder.fit_transform(number_map)
+
+case_map = label.fit_transform(instances['case'])
+case_map = case_map.reshape(len(case_map), 1)
+cases = onehot_encoder.fit_transform(case_map)
+
+scan_map = label.fit_transform(instances['scansion'])
+scan_map = scan_map.reshape(len(scan_map), 1)
+scansion = onehot_encoder.fit_transform(scan_map)
+
 ## add features to dataframe
+instances['ship'] = ships
+instances['number'] = numbers
+instances['case'] = cases
+instances['scansion'] = scansion
+instances['line'] = appearances
 instances['num_lines'] = num_lines
-instances['punctuation'] = punc
 instances['position'] = positions
 instances['difference'] = differences
 instances['ratio'] = ratio
