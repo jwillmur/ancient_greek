@@ -13,5 +13,5 @@ This is done by identifying features of the text that may be relevant, analysing
 ## Repository instructions/pipeline
 1. for preprocessing (feature cleaning and creation), run `preprocess_features.py`
 2. to determine relationships between features, run `analyse_features.ipynb`
-3. to investigate the best model, run `model.ipynb`
-4. to evaluate the accuracy of the final model, run `model_analysis.ipynb`
+3. to investigate the best model, run `model.ipynb` and `model_filtered.ipynb`
+4. to evaluate the accuracy of the final model, run `analysis.ipynb` and `analysis_filtered.ipynb`
