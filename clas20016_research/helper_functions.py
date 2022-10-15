@@ -2,6 +2,7 @@
 Define functions for CLAS20016 Research Code
 '''
 
+## import necessary libraries
 import numpy as np
 
 from sklearn.dummy import DummyClassifier
@@ -14,7 +15,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 def categorise_number(number):
     '''
-    Convert number of ship to numbered categories
+    Convert the number of ship to numbered categories
     '''
     if number=='s':
         return 1
@@ -23,7 +24,7 @@ def categorise_number(number):
 
 def categorise_case(case):
     '''
-    Categorise case of ship to numbered categories
+    Categorise the case of ship to numbered categories
     '''
     if case=='n':
         return 0
@@ -38,6 +39,7 @@ def categorise_case(case):
 def chi_square(X_input, Y_input, test_input, k):
     '''
     Selects the k most significant features using the chi squared metric
+    Returns a 2D array with the selected features
     '''
     x2 = SelectKBest(chi2, k=k)
     x2.fit(X_input, Y_input)
@@ -47,7 +49,8 @@ def chi_square(X_input, Y_input, test_input, k):
 
 def anova(X_input, Y_input, test_input):
     '''
-    Selects the k most significant features using ANOVA
+    Selects the k most significant features using ANOVA - analysis of variance
+    Retruns a 2D array with the selected features
     '''
     anova = SelectKBest(f_classif, k=2)
     anova.fit(X_input, Y_input)
@@ -57,7 +60,8 @@ def anova(X_input, Y_input, test_input):
 
 def tfidf_vector(train_in, test_in):
     '''
-    Weights the vectors with their occurences
+    Term Frequency-Inverse Document Frequency weights the importance of the feature 
+    in relationship to the number of times it appears in the document/instance and corpus
     '''
     tfidf_vectorizer = TfidfVectorizer()
     train_out = tfidf_vectorizer.fit_transform(train_in)
@@ -66,7 +70,8 @@ def tfidf_vector(train_in, test_in):
 
 def model_features(X_train, X_test, y_train, y_test):
     '''
-    Find the accuracy of three models
+    Find the accuracy of four models
+    Prints the accuracy with cross-validation and returns nothing
     '''
     ## baseline: zero_r
     zero_r = DummyClassifier(strategy='most_frequent')
