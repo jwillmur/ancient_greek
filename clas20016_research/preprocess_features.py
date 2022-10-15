@@ -7,6 +7,7 @@ import os
 import nltk
 import pandas as pd
 
+from helper_functions import categorise_case, categorise_number
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 ## find directory
@@ -14,8 +15,8 @@ dir_name = os.path.dirname(__file__)
 relative_dir = 'data/'
 
 ## set variables
-lines_per_book = [444, 433, 497, 847, 493, 331, 347, 586, 566] # up to book 9
-west_removed = ['1.171', '2.407', '3.131', '4.248']
+lines_per_book = [444, 433, 497, 847, 493, 331, 347, 586, 566, 574, 640, 453]
+west_removed = ['1.171', '2.407', '3.131', '4.248', '10.569', '12.140']
 
 ## read in data
 instances = pd.read_csv(f'{dir_name}{relative_dir}ship_instances.csv')
@@ -32,17 +33,20 @@ instances['clause'] = instances['clause'].astype(str)
 instances['scansion'] = instances['scansion'].astype(str)
 
 ## dicts for new features
+numbers = []
+cases = []
 appearances = []
 num_lines = []
 positions = []
 differences = []
 ratio = []
-bigrams = []
 trigrams = []
 
 ## featurise
 for index, row in instances.iterrows():
 
+    numbers.append(categorise_number(row['number']))
+    cases.append(categorise_case(row['case']))
     line_appearence = row['line']/lines_per_book[row['book']-1]
     appearances.append(line_appearence)
 
@@ -61,9 +65,7 @@ for index, row in instances.iterrows():
     else:
         clause = phrase.replace(' | ', ' ')
     nltk_tokens = clause.split(' ')
-    bi = list(nltk.bigrams(nltk_tokens))
     tri = list(nltk.trigrams(nltk_tokens))
-    bigrams.append(bi)
     trigrams.append(tri)
 
 
@@ -101,14 +103,6 @@ ship_map = label.fit_transform(instances['ship'])
 ship_map = ship_map.reshape(len(ship_map), 1)
 ships = onehot_encoder.fit_transform(ship_map)
 
-number_map = label.fit_transform(instances['number'])
-number_map = number_map.reshape(len(number_map), 1)
-numbers = onehot_encoder.fit_transform(number_map)
-
-case_map = label.fit_transform(instances['case'])
-case_map = case_map.reshape(len(case_map), 1)
-cases = onehot_encoder.fit_transform(case_map)
-
 scan_map = label.fit_transform(instances['scansion'])
 scan_map = scan_map.reshape(len(scan_map), 1)
 scansion = onehot_encoder.fit_transform(scan_map)
@@ -123,7 +117,6 @@ instances['num_lines'] = num_lines
 instances['position'] = positions
 instances['difference'] = differences
 instances['ratio'] = ratio
-instances['bigrams'] = bigrams
 instances['trigrams'] = trigrams
 
 ## take out instances west removed
@@ -133,5 +126,4 @@ for index, row in instances_removed.iterrows():
         instances_removed = instances_removed.drop(index)
 
 ## save data
-instances.to_csv(f'{dir_name}{relative_dir}ships_extended.csv')
-instances_removed.to_csv(f'{dir_name}{relative_dir}west_extended.csv')
+instances_removed.to_csv(f'{dir_name}{relative_dir}ships_extended.csv')
